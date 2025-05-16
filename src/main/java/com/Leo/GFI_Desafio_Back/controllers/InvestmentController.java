@@ -31,13 +31,13 @@ public class InvestmentController {
     }
 
     //POST
-    @PostMapping
+    @PostMapping("/create")
     public ResponseEntity<InvestmentModel> createInvestment(@RequestBody InvestmentRecordDto investmentRecordDto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(investmentService.createInvestment(investmentRecordDto));
     }
 
     //PUT
-    @PutMapping("/{id}")
+    @PutMapping("/update/{id}")
     public ResponseEntity<?> updateInvestment(@PathVariable UUID id, @RequestBody InvestmentUpdateRecordDto investmentUpdateRecordDto) {
         Optional<InvestmentModel> investment = investmentService.updateInvestment(id, investmentUpdateRecordDto);
         if (investment.isPresent()) return ResponseEntity.status(HttpStatus.OK).body(investment);
@@ -45,7 +45,7 @@ public class InvestmentController {
     }
 
     //DELETE
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/delete/{id}")
     public ResponseEntity<String> deleteInvestment(@PathVariable UUID id) {
         boolean del = investmentService.deleteInvestment(id).isPresent();
         if (del) return ResponseEntity.status(HttpStatus.OK).body("Investment deleted successfully");

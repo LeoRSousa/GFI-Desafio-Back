@@ -10,7 +10,7 @@ import java.util.Date;
 import java.util.UUID;
 
 public record InvestmentRecordDto(
-        @NotBlank
+        @NotBlank(message = "O nome do investimento não pode ser vazio.")
         @Min(value = 3, message = "Nome do investimento é muito curto")
         String name,
 
