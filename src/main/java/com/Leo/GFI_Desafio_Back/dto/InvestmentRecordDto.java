@@ -1,5 +1,6 @@
 package com.Leo.GFI_Desafio_Back.dto;
 
+import com.Leo.GFI_Desafio_Back.models.InvestmentModel;
 import com.Leo.GFI_Desafio_Back.models.InvestmentTypeEnum;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;

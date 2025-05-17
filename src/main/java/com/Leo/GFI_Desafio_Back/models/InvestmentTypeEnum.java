@@ -2,9 +2,9 @@ package com.Leo.GFI_Desafio_Back.models;
 
 public enum InvestmentTypeEnum {
     //Ação, Fundo, Título
-    STOCK("ação"),
-    FUND("fundo"),
-    BOND("título");
+    STOCK("STOCK"),
+    FUND("FUND"),
+    BOND("BOND");
 
     private final String type;
 

@@ -1,7 +1,9 @@
 package com.Leo.GFI_Desafio_Back.service;
 
 import com.Leo.GFI_Desafio_Back.dto.AuthRecordDto;
+import com.Leo.GFI_Desafio_Back.dto.InvestmentResponseRecordDto;
 import com.Leo.GFI_Desafio_Back.dto.UserRecordDto;
+import com.Leo.GFI_Desafio_Back.dto.UserResponseRecordDto;
 import com.Leo.GFI_Desafio_Back.models.UserModel;
 import com.Leo.GFI_Desafio_Back.repositories.UserRepository;
 import jakarta.transaction.Transactional;
@@ -13,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
@@ -32,23 +35,38 @@ public class UserService {
     public AuthRecordDto login(UserRecordDto userRecordDto) {
         var usernamePassword = new UsernamePasswordAuthenticationToken(userRecordDto.email(), userRecordDto.password());
         var auth = this.authenticationManager.authenticate(usernamePassword);
-        var token = tokenService.genToken((UserModel) auth.getPrincipal());
-        return new AuthRecordDto(token);
+        var user = (UserModel) auth.getPrincipal();
+        var token = tokenService.genToken(user);
+        return new AuthRecordDto(token, user.getId());
     }
 
     //CREATE
     @Transactional
-    public UserModel createUser(UserRecordDto userRecordDto) {
+    public UserResponseRecordDto createUser(UserRecordDto userRecordDto) {
         UserModel user = new UserModel();
         user.setEmail(userRecordDto.email());
         user.setPassword(new BCryptPasswordEncoder().encode(userRecordDto.password()));
-
-        return userRepository.save(user);
+        UserModel created = userRepository.save(user);
+        return new UserResponseRecordDto(created.getId(), created.getEmail(),
+                created.getInvestments()
+                    .stream()
+                    .map(InvestmentResponseRecordDto::fromModel)
+                    .collect(Collectors.toSet()));
     }
 
     //READ (by ID)
-    public Optional<UserModel> getUser(UUID id) {
-        return userRepository.findById(id);
+    public Optional<UserResponseRecordDto> getUser(UUID id) {
+        Optional<UserModel> user = userRepository.findById(id);
+        if(user.isPresent()) {
+            UserResponseRecordDto userResponseRecordDto = new UserResponseRecordDto(user.get().getId(), user.get().getEmail(),
+                    user.get().getInvestments()
+                            .stream()
+                            .map(InvestmentResponseRecordDto::fromModel)
+                            .collect(Collectors.toSet())
+            );
+            return Optional.of(userResponseRecordDto);
+        }
+        return Optional.empty();
     }
 
     //UPDATE
@@ -62,9 +80,13 @@ public class UserService {
     }
 
     //DELETE
-    public Optional<UserModel> deleteUser(UUID id) {
+    public Optional<UserResponseRecordDto> deleteUser(UUID id) {
         Optional<UserModel> user = userRepository.findById(id);
-        if(user.isPresent())userRepository.deleteById(id);
-        return user;
+        if(user.isPresent()) userRepository.deleteById(id);
+        return Optional.of(new UserResponseRecordDto(user.get().getId(), user.get().getEmail(),
+                user.get().getInvestments()
+                        .stream()
+                        .map(InvestmentResponseRecordDto::fromModel)
+                        .collect(Collectors.toSet())));
     }
 }

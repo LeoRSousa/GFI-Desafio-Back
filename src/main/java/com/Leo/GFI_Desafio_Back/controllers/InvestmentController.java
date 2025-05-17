@@ -1,10 +1,9 @@
 package com.Leo.GFI_Desafio_Back.controllers;
 
 import com.Leo.GFI_Desafio_Back.dto.InvestmentRecordDto;
+import com.Leo.GFI_Desafio_Back.dto.InvestmentResponseRecordDto;
 import com.Leo.GFI_Desafio_Back.dto.InvestmentUpdateRecordDto;
-import com.Leo.GFI_Desafio_Back.dto.UserRecordDto;
 import com.Leo.GFI_Desafio_Back.models.InvestmentModel;
-import com.Leo.GFI_Desafio_Back.models.UserModel;
 import com.Leo.GFI_Desafio_Back.service.InvestmentService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,14 +25,20 @@ public class InvestmentController {
     @GetMapping("/{id}")
     public ResponseEntity<?> getInvestment(@PathVariable UUID id){
         Optional<InvestmentModel> investment = investmentService.getInvestment(id);
-        if (investment.isPresent()) return ResponseEntity.status(HttpStatus.OK).body(investment);
+        if (investment.isPresent()) return ResponseEntity.status(HttpStatus.OK).body(
+                new InvestmentResponseRecordDto(
+                        investment.get().getId(), investment.get().getName(), investment.get().getType(), investment.get().getValue(), investment.get().getStartDate(), investment.get().getUser().getId()
+                    ));
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Investment not found.");
     }
 
     //POST
     @PostMapping("/create")
-    public ResponseEntity<InvestmentModel> createInvestment(@RequestBody InvestmentRecordDto investmentRecordDto) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(investmentService.createInvestment(investmentRecordDto));
+    public ResponseEntity<InvestmentResponseRecordDto> createInvestment(@RequestBody InvestmentRecordDto investmentRecordDto) {
+        InvestmentModel investment = investmentService.createInvestment(investmentRecordDto);
+        InvestmentResponseRecordDto investmentResponseRecordDto = new InvestmentResponseRecordDto(
+                investment.getId(), investment.getName(), investment.getType(), investment.getValue(), investment.getStartDate(), investment.getUser().getId());
+        return ResponseEntity.status(HttpStatus.CREATED).body(investmentResponseRecordDto);
     }
 
     //PUT

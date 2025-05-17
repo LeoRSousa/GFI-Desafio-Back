@@ -7,7 +7,7 @@ import java.util.Date;
 import java.util.UUID;
 
 @Entity
-@Table(name = "TB_INVESTMENT")
+@Table(name = "TB_INVESTMENT", uniqueConstraints = { @UniqueConstraint(columnNames = {"name", "user_id"}) })
 public class InvestmentModel implements Serializable {
     private static final long serialVersionUID = 1L;
 
@@ -15,7 +15,7 @@ public class InvestmentModel implements Serializable {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String name;
 
     @Column(nullable = false)

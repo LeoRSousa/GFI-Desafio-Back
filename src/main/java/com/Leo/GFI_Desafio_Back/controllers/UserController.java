@@ -1,15 +1,15 @@
 package com.Leo.GFI_Desafio_Back.controllers;
 
 import com.Leo.GFI_Desafio_Back.dto.AuthRecordDto;
-import com.Leo.GFI_Desafio_Back.dto.UserDeleteRecordDto;
+import com.Leo.GFI_Desafio_Back.dto.GenericResponseDto;
 import com.Leo.GFI_Desafio_Back.dto.UserRecordDto;
+import com.Leo.GFI_Desafio_Back.dto.UserResponseRecordDto;
 import com.Leo.GFI_Desafio_Back.models.UserModel;
 import com.Leo.GFI_Desafio_Back.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.support.DefaultHandlerExceptionResolver;
 
 import java.util.List;
 import java.util.Optional;
@@ -33,7 +33,7 @@ public class UserController {
     //GET
     @GetMapping("/{id}")
     public ResponseEntity<?> getUser(@PathVariable UUID id){
-        Optional<UserModel> user = userService.getUser(id);
+        Optional<UserResponseRecordDto> user = userService.getUser(id);
         if (user.isPresent()) return ResponseEntity.status(HttpStatus.OK).body(user);
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found.");
     }
@@ -53,16 +53,14 @@ public class UserController {
     }
 
     //DELETE
-    @DeleteMapping("/delete/")
-    public ResponseEntity<String> deleteUser(@RequestBody @Valid UUID id) {
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<?> deleteUser(@PathVariable UUID id) {
         try {
-            boolean del = userService.deleteUser(id).isPresent();
-            if (del) return ResponseEntity.status(HttpStatus.OK).body("User deleted successfully.");
+            Optional<UserResponseRecordDto> del = userService.deleteUser(id);
+            if (del.isPresent()) return ResponseEntity.status(HttpStatus.OK).body(new GenericResponseDto<String>("User deleted successfully.", del.get().email()));
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found or deleted.");
         } catch (Exception exception) {
             return ResponseEntity.badRequest().body(exception.getMessage());
-        } catch (DefaultHandlerExceptionResolver exceptionResolver) {
-
         }
     }
 }
