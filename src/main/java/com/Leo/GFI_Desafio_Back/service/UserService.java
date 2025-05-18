@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -20,6 +21,7 @@ import java.util.stream.Collectors;
 @Service
 public class UserService {
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Autowired
     private AuthenticationManager authenticationManager;
@@ -27,8 +29,9 @@ public class UserService {
     @Autowired
     private TokenService tokenService;
 
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     //LOGIN
@@ -45,7 +48,7 @@ public class UserService {
     public UserResponseRecordDto createUser(UserRecordDto userRecordDto) {
         UserModel user = new UserModel();
         user.setEmail(userRecordDto.email());
-        user.setPassword(new BCryptPasswordEncoder().encode(userRecordDto.password()));
+        user.setPassword(passwordEncoder.encode(userRecordDto.password()));
         UserModel created = userRepository.save(user);
         return new UserResponseRecordDto(created.getId(), created.getEmail(),
                 created.getInvestments()
@@ -69,14 +72,27 @@ public class UserService {
         return Optional.empty();
     }
 
-    //UPDATE
+    //UPDATE EMAIL
     @Transactional
-    public Optional<UserModel> updateUser(UUID id, UserRecordDto updatedUser) {
-        return userRepository.findById(id).map(existingUser -> {
-            existingUser.setEmail(updatedUser.email());
-            existingUser.setPassword(updatedUser.password());
-            return userRepository.save(existingUser);
-        });
+    public String updateEmail(UUID id, String email) {
+        Optional<UserModel> user = userRepository.findById(id);
+        if (user.isEmpty()) return "Email not updated.";
+
+        UserModel updatedUser = user.get();
+        updatedUser.setEmail(email);
+        userRepository.save(updatedUser);
+        return "Email updated successfully.";
+    }
+
+    //UPDATE PASSWORD
+    @Transactional
+    public String updatePassword(UUID id, String password) {
+        Optional<UserModel> user = userRepository.findById(id);
+        if (user.isEmpty()) return "Password not updated.";
+
+        UserModel updatedUser = user.get();
+        updatedUser.setPassword(passwordEncoder.encode(password));
+        return "Password updated successfully.";
     }
 
     //DELETE

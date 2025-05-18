@@ -1,9 +1,6 @@
 package com.Leo.GFI_Desafio_Back.controllers;
 
-import com.Leo.GFI_Desafio_Back.dto.AuthRecordDto;
-import com.Leo.GFI_Desafio_Back.dto.GenericResponseDto;
-import com.Leo.GFI_Desafio_Back.dto.UserRecordDto;
-import com.Leo.GFI_Desafio_Back.dto.UserResponseRecordDto;
+import com.Leo.GFI_Desafio_Back.dto.*;
 import com.Leo.GFI_Desafio_Back.models.UserModel;
 import com.Leo.GFI_Desafio_Back.service.UserService;
 import jakarta.validation.Valid;
@@ -35,21 +32,30 @@ public class UserController {
     public ResponseEntity<?> getUser(@PathVariable UUID id){
         Optional<UserResponseRecordDto> user = userService.getUser(id);
         if (user.isPresent()) return ResponseEntity.status(HttpStatus.OK).body(user);
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found.");
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new GenericResponseDto<String>("User not found.", "NOT_FOUND"));
     }
 
     //POST
     @PostMapping("/create")
-    public ResponseEntity<UserModel> createUser(@RequestBody UserRecordDto userRecordDto) {
+    public ResponseEntity<UserResponseRecordDto> createUser(@RequestBody UserRecordDto userRecordDto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(userService.createUser(userRecordDto));
     }
 
     //PUT
-    @PutMapping("/update/{id}")
-    public ResponseEntity<?> updateUser(@PathVariable UUID id, @RequestBody UserRecordDto userRecordDto) {
-        Optional<UserModel> user = userService.updateUser(id, userRecordDto);
-        if (user.isPresent()) return ResponseEntity.status(HttpStatus.OK).body(user);
-        return ResponseEntity.status(HttpStatus.OK).body("User not found or updated.");
+    @PutMapping("/update/email/{id}")
+    public ResponseEntity<GenericResponseDto<String>> updateEmail(@PathVariable UUID id, @RequestBody @Valid UpdateEmailDto dto) {
+        String response = userService.updateEmail(id, dto.email());
+        if (response.equals("Email updated successfully."))
+            return ResponseEntity.status(HttpStatus.OK).body(new GenericResponseDto<String>(response, "OK"));
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new GenericResponseDto<String>(response, "NOT_FOUND"));
+    }
+
+    @PutMapping("/update/password/{id}")
+    public ResponseEntity<GenericResponseDto<String>> updatePassword(@PathVariable UUID id, @RequestBody @Valid UpdatePasswordDto dto) {
+        String response = userService.updatePassword(id, dto.password());
+        if (response.equals("Password updated successfully."))
+            return ResponseEntity.status(HttpStatus.OK).body(new GenericResponseDto<String>(response, "OK"));
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new GenericResponseDto<String>(response, "NOT_FOUND"));
     }
 
     //DELETE
@@ -58,7 +64,7 @@ public class UserController {
         try {
             Optional<UserResponseRecordDto> del = userService.deleteUser(id);
             if (del.isPresent()) return ResponseEntity.status(HttpStatus.OK).body(new GenericResponseDto<String>("User deleted successfully.", del.get().email()));
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found or deleted.");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new GenericResponseDto<String>("User not found or deleted.", "NOT_FOUND"));
         } catch (Exception exception) {
             return ResponseEntity.badRequest().body(exception.getMessage());
         }

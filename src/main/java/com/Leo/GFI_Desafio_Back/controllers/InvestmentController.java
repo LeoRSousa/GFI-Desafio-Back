@@ -1,5 +1,6 @@
 package com.Leo.GFI_Desafio_Back.controllers;
 
+import com.Leo.GFI_Desafio_Back.dto.GenericResponseDto;
 import com.Leo.GFI_Desafio_Back.dto.InvestmentRecordDto;
 import com.Leo.GFI_Desafio_Back.dto.InvestmentResponseRecordDto;
 import com.Leo.GFI_Desafio_Back.dto.InvestmentUpdateRecordDto;
@@ -29,7 +30,7 @@ public class InvestmentController {
                 new InvestmentResponseRecordDto(
                         investment.get().getId(), investment.get().getName(), investment.get().getType(), investment.get().getValue(), investment.get().getStartDate(), investment.get().getUser().getId()
                     ));
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Investment not found.");
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new GenericResponseDto<String>("Investment not found", "NOT_FOUND"));
     }
 
     //POST
@@ -45,15 +46,18 @@ public class InvestmentController {
     @PutMapping("/update/{id}")
     public ResponseEntity<?> updateInvestment(@PathVariable UUID id, @RequestBody InvestmentUpdateRecordDto investmentUpdateRecordDto) {
         Optional<InvestmentModel> investment = investmentService.updateInvestment(id, investmentUpdateRecordDto);
-        if (investment.isPresent()) return ResponseEntity.status(HttpStatus.OK).body(investment);
-        return ResponseEntity.status(HttpStatus.OK).body("Investment not found or updated");
+        if (investment.isPresent()) return ResponseEntity.status(HttpStatus.OK).body(new InvestmentResponseRecordDto(
+                investment.get().getId(), investment.get().getName(), investment.get().getType(), investment.get().getValue(),
+                investment.get().getStartDate(), investment.get().getUser().getId()
+        ));
+        return ResponseEntity.status(HttpStatus.OK).body(new GenericResponseDto<String>("Investment not found or updated", "NOT_FOUND"));
     }
 
     //DELETE
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<String> deleteInvestment(@PathVariable UUID id) {
+    public ResponseEntity<GenericResponseDto<String>> deleteInvestment(@PathVariable UUID id) {
         boolean del = investmentService.deleteInvestment(id).isPresent();
-        if (del) return ResponseEntity.status(HttpStatus.OK).body("Investment deleted successfully");
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Investment not found or deleted");
+        if (del) return ResponseEntity.status(HttpStatus.OK).body(new GenericResponseDto<String>("Investment deleted successfully", "OK"));
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new GenericResponseDto<String>("Investment not found or deleted", "NOT_FOUND"));
     }
 }
